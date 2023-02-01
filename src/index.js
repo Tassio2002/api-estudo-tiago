@@ -3,14 +3,14 @@ const app = express()
 const pool = require('./Database/DBConnection')
 const jwt = require('jsonwebtoken');
 require("dotenv-safe").config();
-
+// Permite o uso de JSON
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
-
+// Endpoint raiz, usada pra testar se o servidor subiu
 app.get('/' , async (req, res) => {
-    res.status(200).send('App rodando')
+    res.status(200).send('App iniciado')
 })
-
+// Endpoint para visualizar todos os usuários cadastrados (READ)
 app.get('/getusers', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM users')
@@ -19,7 +19,7 @@ app.get('/getusers', async (req, res) => {
         return res.status(400).send(err)
     }
 })
-
+// Endpoint para cadastrar um novo usuário (CREATE)
 app.post('/signup', async (req, res) => {
     const { user_name, user_email, user_type, password } = req.body
     
@@ -38,7 +38,7 @@ app.post('/signup', async (req, res) => {
         return res.status(500).send(err)
     }
 })
-
+// Endpoint para realizar o login
 app.post('/login', async (req, res) => {
     const { user_id, user_email, password } = req.body
     try {
@@ -56,7 +56,7 @@ app.post('/login', async (req, res) => {
         return res.status(500).send(err)
     }
 })
-
+// Endpoint para atualizar os dados de um usuário (UPDATE)
 app.patch('/user/:user_id', async (req, res) => {
     const { user_id } = req.params
     const { user_name, user_type, password } = req.body
@@ -65,11 +65,11 @@ app.patch('/user/:user_id', async (req, res) => {
         const updateUser = await pool.query('UPDATE users SET user_name = ($1), user_type = ($2), password = ($3) WHERE user_id = ($4) RETURNING *', 
             [user_name, user_type, password, user_id])
         return res.status(200).send(updateUser.rows)
-    } catch (error) {
-        res.status(400).send('bad request')
+    } catch (err) {
+        res.status(400).send(err)
     }
 })
-
+// Endpoint para deletar um usuário (DELETE)
 app.delete('/user/:user_id', verifyJWT, async (req, res) => {
     const { user_id } = req.params
     try {
@@ -81,7 +81,7 @@ app.delete('/user/:user_id', verifyJWT, async (req, res) => {
         return res.status(400).send(err)
     }
 })
-
+// Gera e verifica se o token do usuário é válido
 function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token']
 
